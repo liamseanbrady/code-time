@@ -1,5 +1,14 @@
 require_relative 'code_time'
 
+class Output
+  attr_reader :notification
+
+  def write(input)
+    @notification ||= []
+    @notification << input
+  end
+end
+
 describe 'CodeTime' do
   describe '#timer' do
     it 'runs a timer for the given time' do
@@ -18,15 +27,13 @@ describe 'CodeTime' do
       expect { code_time.timer('5') }.to raise_error(ArgumentError)
     end
 
-    it 'notifies the user that the timer has started and prints the duration of timer' do
-    # output = File.new('/tmp/code_timer_message.txt', 'w+')
-    # $stdout = output
-    # code_time = CodeTime.new
-    # timer_duration = 3
-    # code_time.timer(timer_duration)
-    # File.open('/tmp/code_timer_message.txt', 'r') do |file|
-    # end
-    # expect(output.join).to eq("The timer has started. Enjoy your 0.003 hours of code time.\nWe will let you know when when the session has ended!\nYou are now in a code time session (type <end> or <^c> to exit the session)")
+    it 'notifies the user that the timer has started' do
+      output = Output.new
+      $stdout = output
+      code_time = CodeTime.new
+      timer_duration = 1
+      code_time.timer(timer_duration)
+      expect(output.notification).to eq("The timer has started. Enjoy your 0.003 hours of code time.\n\nWe will let you know when when the session has ended!\n\nYou are now in a code time session (type <end> or <^c> to exit the session)")
     end
 
     it 'uses the correct pluralization if the duration is exactly 1 hour' do
