@@ -37,17 +37,15 @@ class CodeTime
   attr_writer :session_length
 
   def total_session_time
+    return "0" unless session_length >= 1
+
     hours, minutes_and_seconds = session_length.divmod(3600)
     minutes, seconds = minutes_and_seconds.divmod(60)
 
-    if hours + minutes + seconds >= 1
-      hours = pluralize(hours, 'hour')
-      minutes = pluralize(minutes, 'minute')
-      seconds = pluralize(seconds, 'second')
-      return total_time = "#{hours} #{minutes} #{seconds}".strip
-    else
-      return total_time = "0"
-    end
+    hours = pluralize(hours, 'hour')
+    minutes = pluralize(minutes, 'minute')
+    seconds = pluralize(seconds, 'second')
+    "#{hours} #{minutes} #{seconds}".strip
   end
 
   def pluralize(number, word)
