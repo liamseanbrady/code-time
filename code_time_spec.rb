@@ -1,4 +1,5 @@
 require_relative 'code_time'
+require 'sqlite3'
 
 class Output
   attr_reader :notification
@@ -72,8 +73,36 @@ describe 'CodeTime' do
       end
     end
   end
+  
+  describe '#stop_timer' do
+    let(:code_time) { CodeTime.new }
+
+    before do
+      class CodeTime
+        def start_timer(duration)
+        end
+      end
+    end
+
+    it 'stops the timer and saves the 
+  end
 
   describe '#pause' do
+    let(:code_time) { CodeTime.new }
+
+    before do
+      class CodeTime
+        def start_timer(duration)
+        end
+      end
+    end
+
+    it 'assigns the time passed in the current session to the start_time ivar' do
+     #code_time.timer(2)
+     #code_time.pause
+     #
+    end
+    it 'assigns the time passed since pause in the current session to the pause_time ivar'
    #it 'pauses the timer if there is a timer running' do
    #  class CodeTime
    #    def start_timer(duration)
@@ -261,6 +290,49 @@ describe 'CodeTime' do
       code_time.display_session_end_message
       
       expect(output.notification).to include('Code time: 2 hours 2 minutes 2 seconds')
+    end
+  end
+
+  describe '#save' do
+    let(:output) { Output.new }
+    let(:code_time) {CodeTime.new }
+    before do
+      class CodeTime
+        def start_timer(duration)
+        end
+      end
+
+      $stdout = output
+      timer_duration = 1.8
+      code_time.timer(timer_duration)
+    end
+
+    it 'persists the data for a session to the database' do
+      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3')
+      db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
+
+      code_time.add_description('Test')
+      code_time.save(db)
+      
+      expect(db.execute('SELECT description FROM sessions WHERE _id = 1').flatten.first).to eq('Test')
+      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
+    end
+
+    it 'persists the data for two sessions to the database' do
+      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3')
+      db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
+
+      code_time.add_description('Test')
+      code_time.save(db)
+      another_code_time = CodeTime.new
+      timer_duration = 1.8
+      another_code_time.timer(timer_duration)
+      another_code_time.add_description('Test two')
+      another_code_time.save(db)
+      
+      expect(db.execute('SELECT description FROM sessions WHERE _id = 1').flatten.first).to eq('Test')
+      expect(db.execute('SELECT description FROM sessions WHERE _id = 2').flatten.first).to eq('Test two')
+      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
     end
   end
 end
