@@ -32,6 +32,10 @@ class CodeTime
     puts "Code time: #{total_session_time}"
   end
 
+  def save(persistance_layer)
+    persistance_layer.execute('INSERT INTO sessions (length, created_at, description) VALUES (?, ?, ?)', [@session_length, Time.now.to_s, @description])
+  end
+
   private 
 
   attr_writer :session_length
