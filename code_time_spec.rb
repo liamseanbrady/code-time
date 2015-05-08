@@ -295,7 +295,6 @@ describe 'CodeTime' do
 
   describe '#save' do
     let(:output) { Output.new }
-    let(:code_time) {CodeTime.new }
     before do
       class CodeTime
         def start_timer(duration)
@@ -303,25 +302,30 @@ describe 'CodeTime' do
       end
 
       $stdout = output
-      timer_duration = 1.8
-      code_time.timer(timer_duration)
     end
 
     it 'persists the data for a session to the database' do
-      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3')
+      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3', results_as_hash: true)
+      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
       db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
 
+      code_time = CodeTime.new
+      timer_duration = 1.8
+      code_time.timer(timer_duration)
       code_time.add_description('Test')
       code_time.save(db)
       
-      expect(db.execute('SELECT description FROM sessions WHERE _id = 1').flatten.first).to eq('Test')
-      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
+      expect(db.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
     end
 
     it 'persists the data for two sessions to the database' do
-      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3')
+      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3', results_as_hash: true)
+      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
       db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
 
+      code_time = CodeTime.new
+      timer_duration = 1.8
+      code_time.timer(timer_duration)
       code_time.add_description('Test')
       code_time.save(db)
       another_code_time = CodeTime.new
@@ -330,9 +334,8 @@ describe 'CodeTime' do
       another_code_time.add_description('Test two')
       another_code_time.save(db)
       
-      expect(db.execute('SELECT description FROM sessions WHERE _id = 1').flatten.first).to eq('Test')
-      expect(db.execute('SELECT description FROM sessions WHERE _id = 2').flatten.first).to eq('Test two')
-      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
+      expect(db.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
+      expect(db.execute('SELECT description FROM sessions WHERE id = 2').first['description']).to eq('Test two')
     end
   end
 end
