@@ -33,7 +33,15 @@ class CodeTime
   end
 
   def save(persistance_layer)
-    persistance_layer.execute('INSERT INTO sessions (length, created_at, description) VALUES (?, ?, ?)', [@session_length, Time.now.to_s, @description])
+    count = persistance_layer.execute('SELECT COUNT(*) AS count FROM sessions').first['count']
+
+    if count > 0
+      number = persistance_layer.execute('SELECT MAX(id) AS largest_id FROM sessions').first['largest_id'] + 1
+    else
+      number = 1
+    end
+
+    persistance_layer.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [number, @session_length, Time.now.to_s, @description])
   end
 
   private 
