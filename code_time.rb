@@ -9,8 +9,7 @@ class CodeTime
                        'resume a paused session',
                        'exit the current session'] }
 
-  attr_reader :description                       
-  attr_reader :session_length
+  attr_reader :description, :session_length
 
   def timer(duration_in_seconds)
     raise ArgumentError, 'should be a number' unless duration_in_seconds.is_a?(Numeric)
