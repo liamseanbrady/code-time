@@ -306,36 +306,36 @@ describe 'CodeTime' do
     end
 
     it 'persists the data for a session to the database' do
-      db = Database.new
-      db.add_table('sessions')
-
       code_time = CodeTime.new
+      db = code_time.database
+      table_name = 'sessions'
+      db.add_table(table_name)
+
       timer_duration = 1.8
       code_time.timer(timer_duration)
       code_time.add_description('Test')
-      code_time.save(db.connection)
-      
-      expect(db.connection.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
+      code_time.save(table_name)
+      expect(db.row_for_id(table_name, 1)['description']).to eq('Test')
     end
 
     it 'persists the data for two sessions to the database' do
-      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3', results_as_hash: true)
-      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
-      db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
-
       code_time = CodeTime.new
+      db = code_time.database
+      table_name = 'sessions'
+      db.add_table(table_name)
+
       timer_duration = 1.8
       code_time.timer(timer_duration)
       code_time.add_description('Test')
-      code_time.save(db)
+      code_time.save(table_name)
       another_code_time = CodeTime.new
       timer_duration = 1.8
       another_code_time.timer(timer_duration)
       another_code_time.add_description('Test two')
-      another_code_time.save(db)
+      another_code_time.save(table_name)
       
-      expect(db.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
-      expect(db.execute('SELECT description FROM sessions WHERE id = 2').first['description']).to eq('Test two')
+      expect(db.row_for_id(table_name, 1)['description']).to eq('Test')
+      expect(db.row_for_id(table_name, 2)['description']).to eq('Test two')
     end
   end
 end
