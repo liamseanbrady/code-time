@@ -9,7 +9,11 @@ class CodeTime
                        'resume a paused session',
                        'exit the current session'] }
 
-  attr_reader :description, :session_length
+  attr_reader :description, :session_length, :database
+
+  def initialize(database = Database.new)
+    @database = database
+  end
 
   def timer(duration_in_seconds)
     raise ArgumentError, 'should be a number' unless duration_in_seconds.is_a?(Numeric)
@@ -31,16 +35,8 @@ class CodeTime
     puts "Code time: #{total_session_time}"
   end
 
-  def save(persistance_layer)
-    count = persistance_layer.execute('SELECT COUNT(*) AS count FROM sessions').first['count']
-
-    if count > 0
-      number = persistance_layer.execute('SELECT MAX(id) AS largest_id FROM sessions').first['largest_id'] + 1
-    else
-      number = 1
-    end
-
-    persistance_layer.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [number, @session_length, Time.now.to_s, @description])
+  def save(table_name)
+    database.insert(table_name, id: database.next_id(table_name), length: session_length, created_at: Time.now.to_s, description: description)
   end
 
   private 
