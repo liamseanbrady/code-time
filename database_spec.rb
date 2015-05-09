@@ -88,7 +88,7 @@ describe 'Database' do
     it 'returns a hash inside an array for the given name if there is only one row' do
       table_name = 'sessions'
       db.add_table(table_name)
-      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 100, Time.now.to_s, 'test'])
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id(table_name), 100, Time.now.to_s, 'test'])
      
       expect(db.all_rows(table_name)).to be_a Array
       expect(db.all_rows(table_name).first.keys).to include('length')
@@ -97,8 +97,8 @@ describe 'Database' do
     it 'returns a multiple hashes inside an array for the given name when multiple rows are present' do
       table_name = 'sessions'
       db.add_table(table_name)
-      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 100, Time.now.to_s, 'test'])
-      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 200, Time.now.to_s, 'test two'])
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id(table_name), 100, Time.now.to_s, 'test'])
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id(table_name), 200, Time.now.to_s, 'test two'])
      
       expect(db.all_rows(table_name)).to be_a Array
       expect(db.all_rows(table_name).size).to eq(2)
@@ -131,18 +131,40 @@ describe 'Database' do
 
       expect(db.all_rows(table_name)).not_to be_empty
     end
+
+    it 'persists the session data to the database' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+      db.insert(table_name, id: db.next_id(table_name), length: 100, created_at: Time.now.to_s, description: 'Test session')
+
+      expect(db.row_for_id(table_name, 1)['description']).to eq('Test session')
+    end
+
     it 'inserts a new full row into a table with the given name and keywords' do
 
     end
   end
 
-  describe '#where_id' do
-  # it 'returns a hash from the database for the row with a given id' do
-  #   db = Database.new
-  #   table_name = 'sessions'
-  #   db.add_table(table_name)
-  #   db.
-  # end
-  # it 'returns an empty array if no row matches the given id'
+  describe '#row_for_id' do
+    let(:db) { Database.new }
+    after do
+      db.eradicate
+    end
+
+    it 'returns a hash from the database for the row with a given id' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id('sessions'), 200, Time.now.to_s, 'test'])
+      
+      expect(db.row_for_id(table_name, 1)).to be_a Hash
+      expect(db.row_for_id(table_name, 1).keys).to include('length')
+    end
+
+    it 'returns nil if no row matches the given id' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+      
+      expect(db.row_for_id(table_name, 0)).to be_nil
+    end
   end
 end
