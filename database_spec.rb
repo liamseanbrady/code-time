@@ -2,11 +2,9 @@ require_relative 'database'
 
 describe 'Database' do
   describe '#new' do
+    let(:db) { Database.new }
     after do
-      name = Database::NAME
-      if File.exist?("/tmp/#{name}_database.sqlite3")
-        IO.popen("rm /tmp/#{name}_database.sqlite3")
-      end
+      db.eradicate
     end
 
     it 'creates a new database file' do
@@ -17,9 +15,12 @@ describe 'Database' do
   end
 
   describe '#add_table' do
-    it 'adds a table if it does not already exist' do
-      db = Database.new
+    let(:db) { Database.new }
+    after do
+      db.eradicate
+    end
 
+    it 'adds a table if it does not already exist' do
       table_name = 'sessions'
       db.add_table(table_name)
 
@@ -31,23 +32,30 @@ describe 'Database' do
   end
 
   describe '#drop_table' do
-   it 'drops the table if it exists' do
-     db = Database.new
-     table_name = 'sessions'
-     db.add_table(table_name)
+    let(:db) { Database.new }
+    after do
+      db.eradicate
+    end
 
-     db.drop_table(table_name)
+    it 'drops the table if it exists' do
+      table_name = 'sessions'
+      db.add_table(table_name)
 
-     expect(db.table?(table_name)).to eq(false)
-   end
+      db.drop_table(table_name)
+
+      expect(db.table?(table_name)).to eq(false)
+    end
 
    #it 'does not attempt to drop the table if table already exists'
   end
 
   describe '#table?' do
-    it 'returns true if the table exists in the database' do
-      db = Database.new
+    let(:db) { Database.new }
+    after do
+      db.eradicate
+    end
 
+    it 'returns true if the table exists in the database' do
       table_name = 'test_table'
       db.connection.execute("CREATE TABLE #{table_name} (number INT)")
       
@@ -56,8 +64,6 @@ describe 'Database' do
     end
 
     it 'returns false if the table does not exist in the database' do
-      db = Database.new
-
       table_name = 'test_table'
       
       expect(db.table?(table_name)).to eq(false)
@@ -67,7 +73,6 @@ describe 'Database' do
   describe '#eradicate' do
     it 'removes the database file from the system' do
       db = Database.new
-
       db.eradicate
 
       expect(File.exist?(db.file_path)).to eq(false)
@@ -75,28 +80,60 @@ describe 'Database' do
   end
 
   describe '#all_rows' do
-    it 'returns the an array for the given name if it exists' do
-      db = Database.new
+    let(:db) { Database.new }
+    after do
+      db.eradicate
+    end
+
+    it 'returns a hash inside an array for the given name if there is only one row' do
       table_name = 'sessions'
       db.add_table(table_name)
-      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 100, Time.now.to_s, 'hello'])
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 100, Time.now.to_s, 'test'])
      
-      expect(db.all_rows(table_name)).to be_a Hash
-      expect(db.all_rows(table_name).keys).to include('length')
+      expect(db.all_rows(table_name)).to be_a Array
+      expect(db.all_rows(table_name).first.keys).to include('length')
     end
-    it 'returns nil if no table exists for the given name'
+
+    it 'returns a multiple hashes inside an array for the given name when multiple rows are present' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 100, Time.now.to_s, 'test'])
+      db.connection.execute('INSERT INTO sessions (id, length, created_at, description) VALUES (?, ?, ?, ?)', [db.next_id, 200, Time.now.to_s, 'test two'])
+     
+      expect(db.all_rows(table_name)).to be_a Array
+      expect(db.all_rows(table_name).size).to eq(2)
+    end
+
+    it 'returns an empty array if the table exists but has now rows' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+
+      expect(db.all_rows(table_name)).to eq([])
+    end
+
+    it 'returns nil if no table exists for the given name' do
+      table_name = 'sessions'
+     
+      expect(db.all_rows(table_name)).to be_nil
+    end
   end
 
   describe '#insert' do
-    it 'inserts a new blank row into a table with the given name' do
-    # db = Database.new
-    # table_name = 'sessions'
-    # db.add_table(table_name)
-    # db.insert(table_name)
-
-    # expect(db.table(table_name).size).to eq(1)
+    let(:db) { Database.new }
+    after do
+      db.eradicate
     end
-    it 'inserts a new full row into a table with the given name and keywords'
+
+    it 'inserts a new blank row into a table with the given name' do
+      table_name = 'sessions'
+      db.add_table(table_name)
+      db.insert(table_name)
+
+      expect(db.all_rows(table_name)).not_to be_empty
+    end
+    it 'inserts a new full row into a table with the given name and keywords' do
+
+    end
   end
 
   describe '#where_id' do
