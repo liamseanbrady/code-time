@@ -1,4 +1,5 @@
 require_relative 'code_time'
+require_relative 'database'
 require 'sqlite3'
 
 class Output
@@ -305,17 +306,16 @@ describe 'CodeTime' do
     end
 
     it 'persists the data for a session to the database' do
-      db = SQLite3::Database.new('/tmp/codetime_db.sqlite3', results_as_hash: true)
-      db.execute('DROP TABLE sessions') unless db.table_info('sessions').empty?
-      db.execute('CREATE TABLE sessions (id INT PRIMARY KEY, length INT, created_at DATETIME, description VARCHAR(255))') if db.table_info('sessions').empty?
+      db = Database.new
+      db.add_table('sessions')
 
       code_time = CodeTime.new
       timer_duration = 1.8
       code_time.timer(timer_duration)
       code_time.add_description('Test')
-      code_time.save(db)
+      code_time.save(db.connection)
       
-      expect(db.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
+      expect(db.connection.execute('SELECT description FROM sessions WHERE id = 1').first['description']).to eq('Test')
     end
 
     it 'persists the data for two sessions to the database' do
