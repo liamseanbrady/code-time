@@ -26,7 +26,7 @@ class Database
   end
 
   def all_rows(table_name)
-    @connection.execute("SELECT * FROM #{table_name}").first
+    @connection.execute("SELECT * FROM #{table_name}") if table?(table_name)
   end
 
   def table?(table_name)
