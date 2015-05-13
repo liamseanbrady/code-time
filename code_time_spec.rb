@@ -78,14 +78,14 @@ describe 'CodeTime' do
   describe '#stop_timer' do
     let(:code_time) { CodeTime.new }
 
-    before do
-      class CodeTime
-        def start_timer(duration)
-        end
-      end
-    end
+   #before do
+   #  class CodeTime
+   #    def start_timer(duration)
+   #    end
+   #  end
+   #end
 
-    it 'stops the timer and saves the 
+    it 'stops the timer and saves the'
   end
 
   describe '#pause' do
