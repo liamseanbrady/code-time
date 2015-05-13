@@ -5,7 +5,7 @@ require 'sqlite3'
 class OutputDouble
   attr_reader :notification
 
-  def write(input)
+  def display(input)
     @notification ||= []
     @notification << input
   end
@@ -14,7 +14,7 @@ end
 describe 'CodeTime' do
   describe '#timer' do
     it 'runs a timer for the given time' do
-      code_time = CodeTime.new
+      code_time = CodeTime.new(OutputDouble.new)
       start_time = Time.now
       code_time.timer(3)
       end_time = Time.now
