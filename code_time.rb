@@ -1,3 +1,9 @@
+class Output
+  def display(text)
+    puts text
+  end
+end
+
 class CodeTime
   HELP_OPTIONS = { titles: ['start', 'help', 'history', 'timer', 
                             'pause', 'resume', 'end'],
@@ -11,7 +17,8 @@ class CodeTime
 
   attr_reader :description, :session_length, :database
 
-  def initialize(database = Database.new)
+  def initialize(output = Output.new, database = Database.new)
+    @output = output
     @database = database
   end
 
@@ -31,8 +38,8 @@ class CodeTime
   end
 
   def display_session_end_message
-    puts 'Summary'
-    puts "Code time: #{total_session_time}"
+    @output.display 'Summary'
+    @output.display "Code time: #{total_session_time}"
   end
 
   def save(table_name)
@@ -79,19 +86,19 @@ class CodeTime
   end
 
   def timer_started_notification(duration_in_seconds)
-    puts "The timer has started. Enjoy your #{total_session_time} of code time."
-    puts "We will let you know when when the session has ended!"
-    puts "You are now in a code time session (type <end> or <^c> to exit the session)"
+    @output.display "The timer has started. Enjoy your #{total_session_time} of code time."
+    @output.display "We will let you know when when the session has ended!"
+    @output.display "You are now in a code time session (type <end> or <^c> to exit the session)"
   end
 
   def display_help_menu
-    puts 'codetime has the following options'
+    @output.display 'codetime has the following options'
     options = HELP_OPTIONS
     longest_string_length = options.values.map(&:size).max
     left_just_spaces = longest_string_length + 3
     formatted_titles = options[:titles].map { |title| title.ljust(left_just_spaces) }
     descriptions = options[:descriptions]
     help_menu = formatted_titles.zip(descriptions).map(&:join)
-    puts help_menu.join("\n")
+    @output.display help_menu
   end
 end
