@@ -38,10 +38,6 @@ class CodeTime
     @output.display "Code time: #{total_session_time}"
   end
 
-  def save(table_name)
-    database.insert(table_name, id: database.next_id(table_name), length: session_length, created_at: Time.now.to_s, description: description)
-  end
-
   private 
 
   attr_writer :session_length
