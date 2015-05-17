@@ -1,5 +1,5 @@
-require_relative 'code_time'
-require_relative 'database'
+require_relative 'lib/code_time/code_time'
+require_relative 'lib/code_time/database'
 require 'sqlite3'
 
 class OutputDouble
@@ -171,8 +171,7 @@ describe 'CodeTime' do
     end
 
     it 'displays a header' do
-      timer_duration = 1.8
-      code_time.timer(timer_duration)
+      allow(code_time).to receive(:total_session_time)
 
       code_time.display_session_end_message
       
@@ -180,8 +179,7 @@ describe 'CodeTime' do
     end
 
     it 'displays 0 for the session length where the length is less than 1 second' do
-      timer_duration = 0.8
-      code_time.timer(timer_duration)
+      allow(code_time).to receive(:session_length) { 0.2 }
 
       code_time.display_session_end_message
       

@@ -1,8 +1,4 @@
-class Output
-  def display(text)
-    puts text
-  end
-end
+require 'code_time/output'
 
 class CodeTime
   HELP_OPTIONS = { titles: ['start', 'help', 'history', 'timer', 
@@ -40,10 +36,6 @@ class CodeTime
   def display_session_end_message
     @output.display 'Summary'
     @output.display "Code time: #{total_session_time}"
-  end
-
-  def save(table_name)
-    database.insert(table_name, id: database.next_id(table_name), length: session_length, created_at: Time.now.to_s, description: description)
   end
 
   private 
