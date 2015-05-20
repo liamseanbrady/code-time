@@ -7,20 +7,27 @@ class SessionRepository
   end
 
   def all
-    sessions = adapter.all
-    build_session_collection(sessions)
+    build_session_collection(all_sessions)
   end
 
   def store(session)
     adapter.save(session)
   end
 
-  def find_by_length(seconds)
-    sessions = adapter.find_by_length(seconds)
+  def find_by_length(duration)
+    sessions = find_sessions_by_length(duration)
     build_session_collection(sessions)
   end
 
   private
+  
+  def all_sessions
+    adapter.all
+  end
+
+  def find_sessions_by_length
+    adapter.find_by_length(duration)
+  end
 
   def build_session_collection(sessions)
     sessions.map do |session_attributes|
