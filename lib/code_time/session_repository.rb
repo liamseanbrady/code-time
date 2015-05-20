@@ -25,7 +25,7 @@ class SessionRepository
     adapter.all
   end
 
-  def find_sessions_by_length
+  def find_sessions_by_length(duration)
     adapter.find_by_length(duration)
   end
 
