@@ -1,23 +1,5 @@
 require './lib/code_time/session_repository'
 
-class AdapterDouble
-  def sessions
-    @sessions ||= []
-  end
-
-  def save(session)
-    sessions << session
-  end
-
-  def all
-    sessions
-  end
-
-  def find_by_length(seconds)
-    sessions.reject { |session| session[:length] != seconds }
-  end
-end
-
 class SessionDouble
   attr_reader :length, :description, :created_at
 
