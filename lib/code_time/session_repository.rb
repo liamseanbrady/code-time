@@ -8,10 +8,7 @@ class SessionRepository
 
   def all
     sessions = adapter.all
-    return [] if sessions.empty?
-    sessions.map do |session_attributes|
-      session_factory.make(session_attributes)
-    end
+    build_session_collection(sessions)
   end
 
   def store(session)
@@ -20,8 +17,18 @@ class SessionRepository
 
   def find_by_length(seconds)
     sessions = adapter.find_by_length(seconds)
+    build_session_collection(sessions)
+  end
+
+  private
+
+  def build_session_collection(sessions)
     sessions.map do |session_attributes|
-      session_factory.make(session_attributes)
+      build_session_with_attributes(session_attributes)
     end
+  end
+
+  def build_session_with_attributes(attributes)
+    session_factory.make(attributes)
   end
 end
