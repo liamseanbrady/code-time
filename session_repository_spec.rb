@@ -35,8 +35,8 @@ class AdapterDouble
     sessions
   end
 
-  def find_by_length(seconds)
-    sessions.reject { |session| session.fetch(:length) != seconds }
+  def find_by_length(duration_in_seconds)
+    sessions.reject { |session| session.fetch(:length) != duration_in_seconds }
   end
 end
 
@@ -109,6 +109,7 @@ describe 'SessionRepository' do
     let(:session_repo) { SessionRepository.new(adapter, session_factory) }
 
     it 'returns an empty array if no session matches' do
+      allow(adapter).to receive(:find_by_length) { [] }
       expect(session_repo.find_by_length(10)).to eq([])
     end
 
@@ -119,15 +120,17 @@ describe 'SessionRepository' do
       ]
 
       session_one = double('session')
-      expect(session_one).to receive(:description) { all_sessions.first[:description] }
+      allow(session_one).to receive(:description) { all_sessions.first[:description] }
       allow(session_factory).to receive(:make) { session_one }
-      expect(adapter).to receive(:find_by_length).with(10) { all_sessions.first }
+      allow(adapter).to receive(:find_by_length).with(10) { all_sessions.first }
       allow(adapter).to receive(:sessions).and_return(all_sessions)
      
       expect(session_repo.find_by_length(10).first.description).to eq('Ruby is good')
     end
 
     it 'returns many sessions in an array if many sessions match' do
+      session = double('session')
+
       all_sessions = [
         { id: 1, length: 10, description: 'Ruby is good', created_at: Time.now.to_s },
         { id: 2, length: 20, description: 'TDD is good', created_at: Time.now.to_s },
@@ -135,9 +138,16 @@ describe 'SessionRepository' do
         { id: 4, length: 20, description: 'TDD is bad', created_at: Time.now.to_s }
       ]
 
-      allow(adapter).to receive(:sessions).and_return(all_sessions)
+      matching_sessions = [
+        { id: 1, length: 10, description: 'Ruby is good', created_at: Time.now.to_s },
+        { id: 3, length: 10, description: 'Ruby is bad', created_at: Time.now.to_s },
+      ]
+
+      allow(adapter).to receive(:find_by_length) { matching_sessions }
+      allow(session_factory).to receive(:make).with(matching_sessions.first) { session }
+      allow(session_factory).to receive(:make).with(matching_sessions.last) { session }
      
-      expect(session_repo.find_by_length(10).map(&:description)).to match_array(['Ruby is good', 'Ruby is bad'])
+      expect(session_repo.find_by_length(10).size).to eq(2)
     end
   end
 end
